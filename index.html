@@ -73,6 +73,17 @@
     </div>
 
     <script>
+        // 1. Check device type EXACTLY ONCE on page load
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        function executeSearch(url) {
+            if (isMobile) {
+                window.location.href = url; // Seamless native app routing for phones
+            } else {
+                window.open(url, '_blank'); // Clean new tabs for laptops
+            }
+        }
+
         function searchGrocery(platform) {
             let item = document.getElementById('groceryItem').value;
             if (!item) { alert("Enter a grocery item!"); return; }
@@ -84,7 +95,7 @@
                 'swiggy': 'https://www.swiggy.com/instamart/search?query=' + encoded,
                 'bigbasket': 'https://www.bigbasket.com/ps/?q=' + encoded
             };
-            window.location.href = urls[platform];
+            executeSearch(urls[platform]);
         }
 
         function searchAmazon(rating) {
@@ -97,7 +108,7 @@
             if (rating === '3') url += "&rh=p_85%3A10440599031%2Cp_72%3A1318477031";
             if (rating === '4') url += "&rh=p_85%3A10440599031%2Cp_72%3A1318476031";
 
-            window.location.href = url;
+            executeSearch(url);
         }
 
         function searchFlipkart(rating) {
@@ -113,7 +124,7 @@
             if (rating === '3') url += star3;
             if (rating === '4') url += star4;
 
-            window.location.href = url;
+            executeSearch(url);
         }
     </script>
 
