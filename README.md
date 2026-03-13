@@ -1,8 +1,6 @@
-# search-hub
+# Unified Search Hub
 
 Custom Search Dashboard for Shopping Websites
-
-Unified Search Hub
 
 A lightweight, zero-dependency, single-page dashboard designed to streamline searching across multiple e-commerce and quick-commerce platforms. Built as a personal utility to quickly aggregate and compare items without needing to navigate individual websites first.
 
