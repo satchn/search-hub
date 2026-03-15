@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hub-cache-v1';
+const CACHE_NAME = 'hub-cache-v1.2.0';
 // We only need to cache the main HTML file itself
 const urlsToCache = [
     './',
