@@ -7,32 +7,33 @@
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: sans-serif; padding: 15px; margin: 0; }
         h2 { color: #ffffff; text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-
+        
         .card { background: #1e1e1e; padding: 18px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
         .card h3 { margin-top: 0; margin-bottom: 12px; font-size: 16px; color: #bb86fc; }
-
-        input[type="text"] { width: 100%; padding: 14px; font-size: 16px; box-sizing: border-box; background: #2d2d2d; border: 1px solid #555; color: white; border-radius: 6px; margin-bottom: 15px; outline: none; }
-        input[type="text"]:focus { border-color: #bb86fc; }
-
-        /* Grid Layouts for Buttons */
+        
+        /* Updated input to natively support the 'clear' X icon */
+        input[type="search"] { width: 100%; padding: 14px; font-size: 16px; box-sizing: border-box; background: #2d2d2d; border: 1px solid #555; color: white; border-radius: 6px; margin-bottom: 8px; outline: none; }
+        input[type="search"]:focus { border-color: #bb86fc; }
+        
+        /* Styling for the new Recent Search pills */
+        .recent-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; min-height: 24px; }
+        .recent-pill { background: #333; color: #aaa; font-size: 12px; padding: 4px 10px; border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+        .recent-pill:hover { background: #555; color: #fff; }
+        
         .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-
+        
         button { padding: 12px 5px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; transition: opacity 0.2s; }
         button:active { opacity: 0.7; }
-
-        /* Brand Colors - Groceries */
+        
         .btn-blinkit { background-color: #f8cb46; color: #000000; border: none; }
         .btn-zepto { background-color: #3f0071; color: #FFFFFF; border: none; }
         .btn-swiggy { background-color: #fc8019; color: #FFFFFF; border: none; }
         .btn-bigbasket { background-color: #84c225; color: #000000; border: none; }
-
-        /* Brand Colors - E-Commerce */
-        /* Amazon Slate with Smile Orange Accent */
+        
         .btn-amz { background-color: #37475A; color: #FFFFFF; border: none; border-bottom: 3px solid #FF9900; }
         .btn-amz:active { background-color: #232F3E; border-bottom-color: #E38900; }
-
-        /* Flipkart Assured Blue */
+        
         .btn-fk { background-color: #2874F0; color: #FFFFFF; border: none; }
         .btn-fk:active { background-color: #1A5AC6; }
     </style>
@@ -43,7 +44,8 @@
 
     <div class="card">
         <h3>🛒 Grocery Compare</h3>
-        <input type="text" id="groceryItem" placeholder="e.g., Milk 500ml...">
+        <input type="search" id="groceryItem" placeholder="e.g., Milk 500ml..." autofocus>
+        <div class="recent-container" id="groceryRecents"></div>
         <div class="grid-2x2">
             <button class="btn-blinkit" onclick="searchGrocery('blinkit')">Blinkit</button>
             <button class="btn-zepto" onclick="searchGrocery('zepto')">Zepto</button>
@@ -54,7 +56,8 @@
 
     <div class="card">
         <h3>📦 Amazon (Prime • L-H Price)</h3>
-        <input type="text" id="amazonItem" placeholder="e.g., Hot Air Gun, Liquid Detergent...">
+        <input type="search" id="amazonItem" placeholder="e.g., Hot Air Gun, Liquid Detergent...">
+        <div class="recent-container" id="amazonRecents"></div>
         <div class="grid-3">
             <button class="btn-amz" onclick="searchAmazon('any')">All</button>
             <button class="btn-amz" onclick="searchAmazon('3')">3★+</button>
@@ -64,7 +67,8 @@
 
     <div class="card">
         <h3>🛍️ Flipkart (Assured • L-H Price)</h3>
-        <input type="text" id="flipkartItem" placeholder="e.g., Wind Deflectors, 27mm Hex Socket...">
+        <input type="search" id="flipkartItem" placeholder="e.g., Wind Deflectors, 27mm Hex Socket...">
+        <div class="recent-container" id="flipkartRecents"></div>
         <div class="grid-3">
             <button class="btn-fk" onclick="searchFlipkart('any')">All</button>
             <button class="btn-fk" onclick="searchFlipkart('3')">3★+</button>
@@ -73,22 +77,49 @@
     </div>
 
     <script>
-        // 1. Check device type EXACTLY ONCE on page load
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // --- RECENT SEARCHES LOGIC (Zero Dependency) ---
+        function saveRecent(category, term) {
+            if (!term) return;
+            let recents = JSON.parse(localStorage.getItem(category + 'Recents')) || [];
+            recents = recents.filter(item => item !== term); // Remove duplicates
+            recents.unshift(term); // Add to front
+            if (recents.length > 3) recents.pop(); // Keep only last 3
+            localStorage.setItem(category + 'Recents', JSON.stringify(recents));
+            renderRecents(category);
+        }
+
+        function renderRecents(category) {
+            let recents = JSON.parse(localStorage.getItem(category + 'Recents')) || [];
+            let container = document.getElementById(category + 'Recents');
+            container.innerHTML = '';
+            recents.forEach(term => {
+                let pill = document.createElement('span');
+                pill.className = 'recent-pill';
+                pill.textContent = term;
+                pill.onclick = () => document.getElementById(category + 'Item').value = term;
+                container.appendChild(pill);
+            });
+        }
+
+        // Initialize recents on page load
+        ['grocery', 'amazon', 'flipkart'].forEach(renderRecents);
+        // -----------------------------------------------
 
         function executeSearch(url) {
             if (isMobile) {
-                window.location.href = url; // Seamless native app routing for phones
+                window.location.href = url;
             } else {
-                window.open(url, '_blank'); // Clean new tabs for laptops
+                window.open(url, '_blank');
             }
         }
 
         function searchGrocery(platform) {
             let item = document.getElementById('groceryItem').value;
-            if (!item) { alert("Enter a grocery item!"); return; }
+            if (!item) return;
+            saveRecent('grocery', item);
             let encoded = encodeURIComponent(item);
-
             let urls = {
                 'blinkit': 'https://blinkit.com/s/?q=' + encoded,
                 'zepto': 'https://www.zepto.com/search?query=' + encoded,
@@ -100,33 +131,33 @@
 
         function searchAmazon(rating) {
             let item = document.getElementById('amazonItem').value;
-            if (!item) { alert("Enter an Amazon item!"); return; }
-
+            if (!item) return;
+            saveRecent('amazon', item);
             let url = "https://www.amazon.in/s?k=" + encodeURIComponent(item) + "&s=price-asc-rank";
-
             if (rating === 'any') url += "&rh=p_85%3A10440599031";
             if (rating === '3') url += "&rh=p_85%3A10440599031%2Cp_72%3A1318477031";
             if (rating === '4') url += "&rh=p_85%3A10440599031%2Cp_72%3A1318476031";
-
             executeSearch(url);
         }
 
         function searchFlipkart(rating) {
             let item = document.getElementById('flipkartItem').value;
-            if (!item) { alert("Enter a Flipkart item!"); return; }
-
+            if (!item) return;
+            saveRecent('flipkart', item);
             let url = "https://www.flipkart.com/search?q=" + encodeURIComponent(item) + "&sort=price_asc";
             let assured = "&p%5B%5D=facets.fulfilled_by%255B%255D%3DF-Assured";
-            let star3 = "&p%5B%5D=facets.rating%255B%255D%3D3%25E2%2598%2585%2B%2526%2Babove";
-            let star4 = "&p%5B%5D=facets.rating%255B%255D%3D4%25E2%2598%2585%2B%2526%2Babove";
-
             url += assured;
-            if (rating === '3') url += star3;
-            if (rating === '4') url += star4;
-
+            if (rating === '3') url += "&p%5B%5D=facets.rating%255B%255D%3D3%25E2%2598%2585%2B%2526%2Babove";
+            if (rating === '4') url += "&p%5B%5D=facets.rating%255B%255D%3D4%25E2%2598%2585%2B%2526%2Babove";
             executeSearch(url);
         }
-    </script>
 
+        // --- SERVICE WORKER REGISTRATION (Offline Caching) ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </body>
 </html>
