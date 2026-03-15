@@ -25,3 +25,18 @@ self.addEventListener('fetch', event => {
             })
     );
 });
+
+// Clean up old caches when a new version is activated
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cache => {
+                    if (cache !== CACHE_NAME) {
+                        return caches.delete(cache); // Deletes old versions automatically
+                    }
+                })
+            );
+        })
+    );
+});
