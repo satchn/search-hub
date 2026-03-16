@@ -12,6 +12,7 @@ A lightweight, zero-dependency, single-page dashboard designed to streamline sea
   * On mobile environments, it bypasses browser tabs to seamlessly trigger native application deep-links.
 * **Zero Bloat:** Written entirely in pure HTML, CSS, and Vanilla JavaScript. No external libraries, no frameworks, no telemetry, and no server-side processing required.
 * **Tailored Filtering:** Includes pre-configured URL parameters to automatically sort by price (Low to High), filter by Prime/Assured delivery, and enforce minimum star ratings.
+* **Dark Theme by Default:** The UI is designed with a static, high-contrast dark theme for comfortable viewing, regardless of your device's system color settings.
 
 ## Usage & Deployment
 
